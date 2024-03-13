@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:math';
+import 'dart:async';
 
 void main() {
   runApp(const MyApp());
@@ -61,6 +63,14 @@ class _MyHomePageState extends State<MyHomePage> {
   List<List<int>> matrix_table =[[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]];
   int turn=1;
   int state=0; //put 0 rotate 1 finish -1
+  double pageWidth=0;
+  double pageHeight=0;
+  double minSize = 0;
+  
+  double sumdx=0;
+  double sumdy=0;
+  int rotationColumnIndex=0;
+  int rotationRowIndex=0;
 
 
   List<List<List<List<int>>>> convertT2S(List<List<int>> table){
@@ -267,6 +277,7 @@ class _MyHomePageState extends State<MyHomePage> {
     // [1, 0, -1, 1, 1, -1, 1, 0, -1]
     // [1, 0, -1, 0, 1, -1, 1, 0, -1]
     if (clockwise){
+      print('clockwise');
       List<int> swaps1=[0,2,8,6];
       List<int> swaps2=[1,5,7,3];
       
@@ -284,6 +295,7 @@ class _MyHomePageState extends State<MyHomePage> {
       for(var i=swaps1.length-1;i>=0;i--){
         if(i==0){
           flatternMatrix[temp]=tempvalue;
+          
         }
         else{
           flatternMatrix[temp]=flatternMatrix[swaps1[i]];
@@ -315,14 +327,67 @@ class _MyHomePageState extends State<MyHomePage> {
       }
       return rotatedMatrix;
     }
-    // TODO un clockwised
+    else{
+      print('Unclockwise');
+      List<int> swaps1=[0,2,8,6];
+      List<int> swaps2=[1,5,7,3];
+      
+      List<int> flatternMatrix=[];
+      print('rotateSquare');
+      
+      for(var i=0;i<square.length;i++){
+        for(var j=0;j<square[i].length;j++){
+            flatternMatrix.add(square[i][j]);
+        }
+      }
+      print(flatternMatrix);
+      int tempvalue=flatternMatrix[swaps1[swaps1.length-1]];
+      print(tempvalue);
+      int temp=swaps1[swaps1.length-1];
+      for(var i=0;i<swaps1.length;i++){
+        if(i==swaps1.length-1){
+          flatternMatrix[temp]=tempvalue;
+        }
+        else{
+          
+          flatternMatrix[temp]=flatternMatrix[swaps1[i]];
+          temp=swaps1[i];
+        }
+      }
+
+      tempvalue=flatternMatrix[swaps2[swaps2.length-1]];
+      temp=swaps2[swaps2.length-1];
+      for(var i=0;i<swaps2.length;i++){
+        if(i==swaps2.length-1){
+          flatternMatrix[temp]=tempvalue;
+        }
+        else{
+          flatternMatrix[temp]=flatternMatrix[swaps2[i]];
+          temp=swaps2[i];
+        }
+      }
+      print(flatternMatrix);
+      List<List<int>> rotatedMatrix=[];
+      List<int> temparray=[];
+      for(var i=0;i<flatternMatrix.length;i++){
+        temparray.add(flatternMatrix[i]);
+        if((i+1)%3==0){
+          rotatedMatrix.add(temparray);
+          temparray=[];
+        }
+        
+      }
+      return rotatedMatrix;
+
+    }
+    
     return [[]];
     
   }
 
 
 
-  Widget cellUI(int color,int row,int column){
+  Widget cellUI(int color,int row,int column,bool touchable){
     Color? board =Colors.brown[200];
     Color? black =Colors.black;
     Color? white =Colors.white;
@@ -338,39 +403,81 @@ class _MyHomePageState extends State<MyHomePage> {
           inside=black;
           break;
     };
-    return GestureDetector(
-      child:Container(
-        margin: const EdgeInsets.all(10.0),
-        color: board,
-        width: 48.0,
-        height: 48.0,
-        child: new Container(
-          margin: const EdgeInsets.all(6.0),
-          width: 18.0,
-          height: 18.0,
-          decoration: new BoxDecoration(
-            color: inside,
-            shape: BoxShape.circle,
-          ),
-        )
-      ),
-      onTap:state==1?null:(){
-        if(matrix_table[row][column]==0 ){
-          setState(
-            (){
+    if (touchable){
+      return GestureDetector(
+        child:Container(
+          margin: const EdgeInsets.all(10.0),
+          color: board,
+          width: (minSize/6)*0.5,
+          height: (minSize/6)*0.5,
+          child: new Container(
+            margin: const EdgeInsets.all(6.0),
+            width: (minSize/6)*0.4,
+            height: (minSize/6)*0.4 ,
+            decoration: new BoxDecoration(
+              color: inside,
+              shape: BoxShape.circle,
+            ),
+          )
+        ),
+        onTap:state==1?null:(){
+          if(matrix_table[row][column]==0 ){
+            setState(
+              (){
 
-                matrix_table[row][column]=turn;
-                state=1;
+                  matrix_table[row][column]=turn;
+                  state=1;
 
-            }
+              }
 
-          );
-        }
-      },
+            );
+          }
+        },
+      );
+    }
+    else{
+      
+        return Container(
+          margin: const EdgeInsets.all(10.0),
+          color: board,
+          width: (minSize/6)*0.5,
+          height: (minSize/6)*0.5,
+          child: new Container(
+            margin: const EdgeInsets.all(6.0),
+            width: (minSize/6)*0.4,
+            height: (minSize/6)*0.4 ,
+            decoration: new BoxDecoration(
+              color: inside,
+              shape: BoxShape.circle,
+            ),
+          )
+        
+       
+      );
+    }
+
+
+
+  }
+
+  void showWinner(){
+    showDialog<String>(
+        context: context,
+        builder: (BuildContext context) => AlertDialog(
+          title: const Text('Game Ended'),
+          content:  Text('${winner==1?"White":"Black"} find 5 in row'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.pop(context, 'Cancel'),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, 'OK'),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
     );
-
-
-
   }
 
 
@@ -387,6 +494,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    pageWidth= MediaQuery.of(context).size.width;
+    pageHeight= MediaQuery.of(context).size.height;
+    minSize = min(pageWidth,pageHeight);
+
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
     //
@@ -427,7 +538,12 @@ class _MyHomePageState extends State<MyHomePage> {
     winner=checkEnd(matrix_table);
     if(winner!=0){
       state=-1;
+      Timer(const Duration(seconds: 1), showWinner);
     }
+    
+    
+    
+    
     // [[[[0,0,0],[0,0,0],[0,0,0]]]]
     // column
     // row
@@ -440,15 +556,28 @@ class _MyHomePageState extends State<MyHomePage> {
     // 
     // 7 = 0,1,1,1 6*1+1+3*1+18*1
     //
-    Widget Matrixshow = Column(
+    // rotationColumnIndex=row_square.key;
+                // rotationRowIndex=column_square.key;
+    
+    Widget Matrixshow_visiable = Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: matrix_square.asMap().entries.map((row_square)=>(
         new Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: row_square.value.asMap().entries.map((column_square)=>(
-            GestureDetector(
+              Transform.rotate(
+              angle: (rotationColumnIndex==column_square.key?(rotationRowIndex==row_square.key?sumdx:0):0),
               child:Container(
-                color: Colors.blue[200],
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xff1f005c),
+                      Color(0xff5b0060),
+                    ],
+                  ),
+                ),
                 margin:const EdgeInsets.all(2.0),
                 child:new Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -456,31 +585,123 @@ class _MyHomePageState extends State<MyHomePage> {
                     new Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children:row_cell.value.asMap().entries.map((column_cell)=>
-                      cellUI(column_cell.value,convertIndexS2T(row_square.key,column_square.key,row_cell.key,column_cell.key)[0],convertIndexS2T(row_square.key,column_square.key,row_cell.key,column_cell.key)[1])
+                      cellUI(column_cell.value,convertIndexS2T(row_square.key,column_square.key,row_cell.key,column_cell.key)[0],convertIndexS2T(row_square.key,column_square.key,row_cell.key,column_cell.key)[1],false)
                       as Widget).toList()
                     )
                   )as Widget).toList()
                 )
-              ),
-              onTap:state==0?null:(){
-                print('here');
-                
-                matrix_square[row_square.key][column_square.key]=rotateSquare(matrix_square[row_square.key][column_square.key],true);
-                
-                matrix_table=convertS2T(matrix_square);
-                state=0;
-                turn=-1*turn;
-                setState((){});
-              }
               )
+              )
+              
 
           )as Widget).toList()
         )
           ) as Widget).toList(),
     );
+    Widget Matrixshow_hide = 
+    Opacity(
+      opacity:0,
+      child:Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: matrix_square.asMap().entries.map((row_square)=>(
+        new Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: row_square.value.asMap().entries.map((column_square)=>(
+            GestureDetector(
+              child:Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xff1f005c),
+                      Color(0xff5b0060),
+                    ],
+                  ),
+                ),
+                margin:const EdgeInsets.all(2.0),
+                child:new Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children:column_square.value.asMap().entries.map((row_cell)=>(
+                    new Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children:row_cell.value.asMap().entries.map((column_cell)=>
+                      cellUI(column_cell.value,convertIndexS2T(row_square.key,column_square.key,row_cell.key,column_cell.key)[0],convertIndexS2T(row_square.key,column_square.key,row_cell.key,column_cell.key)[1],true)
+                      as Widget).toList()
+                    )
+                  )as Widget).toList()
+                )
+              ),
+              // onTap:state==0?null:(){
+              //   print('here');
+                
+              //   matrix_square[row_square.key][column_square.key]=rotateSquare(matrix_square[row_square.key][column_square.key],true);
+                
+              //   matrix_table=convertS2T(matrix_square);
+              //   state=0;
+              //   turn=-1*turn;
+              //   setState((){});
+              // }
+              // onVerticalDragEnd:state==0?null:(DragEndDetails details){
+              //   print('VerticalEnd:${details}');
+              // },
+              // onVerticalDragStart:state==0?null:(DragStartDetails details){
+              //   print('VerticalStart:${details}');
+              // },
+              // onVerticalDragUpdate:state==0?null:(DragUpdateDetails details){
+              //   print('Vertical:${details}');
+              // },
+              // onHorizontalDragUpdate:state==0?null:(DragUpdateDetails details){
+              //   print('Horizontal:${details}');
+              // },
+              onPanEnd: (details) {
+                
+                // print('PanEnd${details}');
+
+                print('dx:${sumdx},dy:${sumdy}');
+                if(sumdx>0){
+                  matrix_square[row_square.key][column_square.key]=rotateSquare(matrix_square[row_square.key][column_square.key],true);
+                  matrix_table=convertS2T(matrix_square);
+                  state=0;
+                  turn=-1*turn;
+                }
+                else{
+                  matrix_square[row_square.key][column_square.key]=rotateSquare(matrix_square[row_square.key][column_square.key],false);
+                  matrix_table=convertS2T(matrix_square);
+                  state=0;
+                  turn=-1*turn;
+                }
+                sumdx=0;
+
+                sumdy=0;
+                setState(() {
+                  
+                });
+              },
+              onPanUpdate: (details) {
+                rotationColumnIndex=column_square.key;
+                rotationRowIndex=row_square.key;
+                print('dx:${sumdx},dy:${sumdy}');
+                setState(() {
+                  // Update the rotation based on the user's touch movement
+                  if(sumdx<1.6 && sumdx>-1.6){
+                    sumdx += details.delta.dx * 0.01; // Adjust the sensitivity
+                  }
+                });
+                // sumdy=sumdy+details.delta.dy;
+                // print('PanUpdate:${details}');
+               
+              }
+              
+              )
+
+          )as Widget).toList()
+        )
+          ) as Widget).toList(),
+    ));
     
 
-
+  
     return Scaffold(
       appBar: AppBar(
         // TRY THIS: Try changing the color here to a specific color (to
@@ -491,10 +712,16 @@ class _MyHomePageState extends State<MyHomePage> {
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: Center(
+      backgroundColor:turn==1?Colors.white:Colors.grey[900],
+      body: Stack(
+        
+        children: <Widget>[
+          
+         
+          Center(
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.
-        child: Column(
+        // child: Column(
           // Column is also a layout widget. It takes a list of children and
           // arranges them vertically. By default, it sizes itself to fit its
           // children horizontally, and tries to be as tall as its parent.
@@ -508,22 +735,40 @@ class _MyHomePageState extends State<MyHomePage> {
           // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
           // action in the IDE, or press "p" in the console), to see the
           // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'Winner:',
-            ),
-            Text(
-              '$winner',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            Matrixshow,
-          ],
+          // mainAxisAlignment: MainAxisAlignment.center,
+          // children: <Widget>[
+            // Text(
+            //   'Winner:',
+            //   style: TextStyle(color: turn==1?Colors.black:Colors.white)
+            // ),
+            // // Theme.of(context).textTheme.headlineMedium,
+            // Text(
+            //   '$winner',
+            //   style: Theme.of(context).textTheme.headlineMedium!.copyWith(
+            //     color: turn==1?Colors.black:Colors.white,
+            //   )
+            // ),
+            child:Matrixshow_visiable,
+          // ],
 
+        // ),
         ),
+        Center(
+            child:Icon(
+            
+            Icons.restart_alt_outlined,
+            color: (turn==1?Colors.black:Colors.white).withOpacity(state==1?0.3:0),
+            size: minSize,
+            semanticLabel: 'Text to announce in accessibility modes',
+          ),
+          ),
+          Center(
+          child:Matrixshow_hide
+          )
+      ]
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
+        onPressed: showWinner,
         tooltip: 'Increment',
         child: const Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
