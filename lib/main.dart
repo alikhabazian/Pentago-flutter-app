@@ -13,6 +13,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: ThemeData(
         // This is the theme of your application.
@@ -33,7 +34,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'Pentago'),
     );
   }
 }
@@ -654,23 +655,24 @@ class _MyHomePageState extends State<MyHomePage> {
               // onHorizontalDragUpdate:state==0?null:(DragUpdateDetails details){
               //   print('Horizontal:${details}');
               // },
-              onPanEnd: (details) {
+              onPanEnd: state==0?null:(details) {
                 
                 // print('PanEnd${details}');
 
                 print('dx:${sumdx},dy:${sumdy}');
-                if(sumdx>0){
+                if(sumdx>1.6/3){
                   matrix_square[row_square.key][column_square.key]=rotateSquare(matrix_square[row_square.key][column_square.key],true);
                   matrix_table=convertS2T(matrix_square);
                   state=0;
                   turn=-1*turn;
                 }
-                else{
+                else if(sumdx<-1.6/3){
                   matrix_square[row_square.key][column_square.key]=rotateSquare(matrix_square[row_square.key][column_square.key],false);
                   matrix_table=convertS2T(matrix_square);
                   state=0;
                   turn=-1*turn;
                 }
+                
                 sumdx=0;
 
                 sumdy=0;
@@ -678,7 +680,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   
                 });
               },
-              onPanUpdate: (details) {
+              onPanUpdate:state==0?null: (details) {
                 rotationColumnIndex=column_square.key;
                 rotationRowIndex=row_square.key;
                 print('dx:${sumdx},dy:${sumdy}');
@@ -703,15 +705,15 @@ class _MyHomePageState extends State<MyHomePage> {
 
   
     return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
+      // appBar: AppBar(
+      //   // TRY THIS: Try changing the color here to a specific color (to
+      //   // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
+      //   // change color while the other colors stay the same.
+      //   backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+      //   // Here we take the value from the MyHomePage object that was created by
+      //   // the App.build method, and use it to set our appbar title.
+      //   title: Text(widget.title),
+      // ),
       backgroundColor:turn==1?Colors.white:Colors.grey[900],
       body: Stack(
         
@@ -767,11 +769,11 @@ class _MyHomePageState extends State<MyHomePage> {
           )
       ]
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: showWinner,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: showWinner,
+      //   tooltip: 'Increment',
+      //   child: const Icon(Icons.add),
+      // ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
